@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Muhammad Zaid Mir - Frontend Developer</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+
+    <style>
+        /* --- Base Styles & Variables --- */
+        :root {
+            --primary: #ff003c; /* Main bright red */
+            --secondary: #000000; /* Black */
+            --accent: #ff6600; /* Orange accent */
+            --text: #e0e0e0; /* Light grey text */
+            --bg: #111111; /* Dark background */
+            --card-bg: #1a1a1a; /* Slightly lighter card background */
+            --highlight: #330000; /* Dark red highlight */
+            --blood: #6a0000; /* Darker red for shadows */
+            --blood-darker: #400000; /* Even darker shadow */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', monospace; /* Monospace font for the theme */
+        }
+
+        html {
+            scroll-behavior: smooth; /* Smooth scrolling for nav links */
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden; /* Prevent horizontal scroll on body */
+        }
+        /* Prevent body scroll when modal is open */
+        body.modal-open {
+            overflow: hidden;
+        }
+
+        /* --- Animations --- */
+        @keyframes fadeInOnLoad { /* Renamed for clarity */
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Apply fade-in ON LOAD to header elements */
+        header h1, header .tagline {
+            animation: fadeInOnLoad 0.8s ease-out forwards;
+            opacity: 0; /* Start hidden */
+        }
+        header .tagline {
+            animation-delay: 0.2s; /* Stagger tagline animation */
+        }
+
+        /* Keyframe animation for Modal Opening */
+        @keyframes modalOpenAnimation {
+            from {
+                opacity: 0;
+                transform: scale(0.85) translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        /* Styles for SCROLL-TRIGGERED animations */
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(30px); /* Start slightly lower */
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        /* Add a slight delay for items in grids for a staggered effect (optional) */
+        .skills-grid .animate-on-scroll:nth-child(2),
+        .projects-grid .animate-on-scroll:nth-child(2) { transition-delay: 0.1s; }
+        .skills-grid .animate-on-scroll:nth-child(3),
+        .projects-grid .animate-on-scroll:nth-child(3) { transition-delay: 0.2s; }
+        .skills-grid .animate-on-scroll:nth-child(4),
+        .projects-grid .animate-on-scroll:nth-child(4) { transition-delay: 0.3s; }
+        /* etc. if more items per row */
+
+        .animate-on-scroll.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+
+        /* --- Bloody Text Effect --- */
+        h1, h2, h3, nav a, .tagline, button[type="submit"] {
+            color: var(--primary); /* Base text color is bright red */
+            text-shadow:
+                /* Multiple shadow layers for depth */
+                1px 1px 1px var(--blood),
+                2px 2px 2px var(--blood),
+                3px 3px 3px var(--blood-darker),
+                1px 1px 5px rgba(0, 0, 0, 0.5); /* Subtle black outer edge */
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            transition: text-shadow 0.1s linear; /* Add transition for JS effect */
+        }
+        /* Stronger shadow specifically for H1 */
+        h1 {
+            font-size: 3rem;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            margin-bottom: 0.5rem;
+            text-shadow: /* Base shadow overridden by JS on mouse move */
+                1px 1px 1px var(--blood),
+                2px 2px 2px var(--blood),
+                3px 3px 3px var(--blood-darker),
+                4px 4px 4px rgba(64, 0, 0, 0.7), /* Extra dark red shadow */
+                1px 1px 6px rgba(0, 0, 0, 0.6);
+        }
+
+        /* Remove/override text shadow where not needed for readability */
+         .about-text p, .skill-card p, .project-info p,
+         .modal-description p, .modal-features li,
+         label, .tag, .social-links a, footer p,
+         .modal-description h4, .modal-features h4 {
+            text-shadow: none;
+            color: var(--text); /* Ensure default text color */
+        }
+        /* Override H3 color in specific contexts if needed */
+        .skill-card h3, .project-info h3, .modal-header h3 {
+            color: var(--accent); /* Use accent for these titles */
+            /* Keep the bloody shadow from the general rule */
+        }
+         label, .modal-description h4, .modal-features h4 {
+             color: var(--accent); /* Use accent for these too */
+         }
+
+
+        /* --- Basic Structure & Layout --- */
+        p, li { position: relative; }
+        /* Subtle underline effect for paragraphs/list items */
+        p::after, li::after {
+            content: ''; position: absolute; bottom: -2px; left: 0;
+            width: 100%; height: 1px;
+            background: linear-gradient(90deg, transparent, var(--blood), transparent);
+            opacity: 0.3;
+        }
+        /* Control where the underline appears */
+        .about-text p::after, .skill-card p::after { opacity: 0.3; }
+        /* Hide underline for these elements */
+        .project-info p::after, .modal-features li::after, footer p::after, .modal-description p::after {
+            display: none;
+        }
+
+        header {
+             background: linear-gradient(135deg, var(--secondary) 0%, var(--highlight) 100%);
+             padding: 2rem;
+             text-align: center;
+             border-bottom: 3px solid var(--primary);
+        }
+        .tagline {
+             font-size: 1.2rem;
+             color: var(--text); /* Tagline uses default text color */
+             letter-spacing: 3px;
+             /* Bloody shadow applied by general rule, animated by JS */
+        }
+
+        nav {
+             background-color: var(--secondary);
+             padding: 1rem;
+             position: sticky;
+             top: 0;
+             z-index: 100; /* Ensure nav stays on top */
+             border-bottom: 1px solid var(--primary);
+        }
+        nav ul {
+             display: flex;
+             justify-content: center;
+             list-style: none;
+             gap: 2rem;
+        }
+        nav a {
+             /* color: var(--primary) set by general rule */
+             text-decoration: none;
+             text-transform: uppercase;
+             font-weight: bold;
+             letter-spacing: 1px;
+             transition: all 0.3s ease;
+             padding: 0.5rem 1rem;
+             border: 1px solid transparent;
+             /* Bloody shadow animated by JS */
+        }
+        nav a:hover {
+             color: var(--accent); /* Change color on hover */
+             border-bottom: 1px solid var(--accent);
+             /* Text shadow remains */
+        }
+
+        section {
+             padding: 3rem 2rem;
+             max-width: 1200px;
+             margin: 0 auto;
+             /* Sections will be animated by JS */
+        }
+        h2 {
+             /* color: var(--primary) set by general rule */
+             font-size: 2rem;
+             margin-bottom: 1.5rem;
+             text-transform: uppercase;
+             letter-spacing: 2px;
+             position: relative;
+             display: inline-block;
+             /* Bloody shadow animated by JS */
+             /* Included in section animation */
+        }
+        /* Underline for section titles */
+        h2::after {
+             content: ''; position: absolute; bottom: -5px; left: 0;
+             width: 100%; height: 2px;
+             background: linear-gradient(90deg, var(--primary), var(--accent));
+        }
+
+        /* --- About Section --- */
+        .about-content { display: flex; gap: 2rem; align-items: center; /* Included in section animation */ }
+        .about-text { flex: 2; }
+        .about-text p { color: var(--text); margin-bottom: 1rem; } /* Ensure default color */
+        .profile-img {
+             flex: 1; max-width: 300px; border: 3px solid var(--primary);
+             box-shadow: 5px 5px 0px var(--accent); /* Brutalist offset shadow */
+             filter: drop-shadow(0 0 10px var(--blood)); /* Bloody glow */
+             transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.6s ease-out, transform 0.6s ease-out; /* Added scroll transition */
+             display: block; /* Ensure it behaves like a block for transforms */
+             margin-left: auto; /* Center if flex direction changes */
+             margin-right: auto; /* Center if flex direction changes */
+             /* Will be animated by JS */
+        }
+        /* Added hover effect for profile image */
+        .profile-img:hover {
+             transform: scale(1.03) rotate(-1deg) translateY(0) !important; /* Ensure hover transform overrides scroll transform Y */
+             box-shadow: 8px 8px 0px var(--accent);
+        }
+
+        /* --- Skills Section --- */
+        .skills-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem; margin-top: 2rem; }
+        .skill-card {
+             background-color: var(--card-bg); padding: 1.5rem;
+             border-left: 3px solid var(--primary);
+             transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.6s ease-out, transform 0.6s ease-out; /* Added scroll transition */
+             position: relative; overflow: hidden;
+             /* Will be animated by JS */
+        }
+        /* Subtle gradient effect on card */
+        .skill-card::before {
+             content: ''; position: absolute; top: 0; left: 0;
+             width: 100%; height: 100%;
+             background: linear-gradient(45deg, transparent 65%, var(--blood) 80%, transparent 95%);
+             opacity: 0; transition: opacity 0.3s ease;
+        }
+        .skill-card:hover {
+             transform: translateY(-5px) !important; /* Ensure hover transform overrides scroll transform Y */
+             box-shadow: 0 5px 15px rgba(255, 0, 60, 0.3);
+         }
+        .skill-card:hover::before { opacity: 0.2; }
+        .skill-card h3 { margin-bottom: 0.5rem; font-size: 1.3rem; } /* Uses accent color */
+        .skill-card p { color: var(--text); } /* Ensure default color */
+
+        /* --- Projects Section --- */
+        .projects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 2rem; margin-top: 2rem; }
+        .project-card {
+             background-color: var(--card-bg); border: 1px solid var(--primary);
+             overflow: hidden;
+             transition: all 0.3s ease, opacity 0.6s ease-out, transform 0.6s ease-out; /* Added scroll transition */
+             cursor: pointer; position: relative;
+             /* Will be animated by JS */
+        }
+        /* Hover overlay */
+        .project-card::after {
+             content: ''; position: absolute; top: 0; left: 0;
+             width: 100%; height: 100%;
+             background: linear-gradient(135deg, rgba(255, 0, 60, 0.1) 0%, rgba(138, 3, 3, 0.3) 100%);
+             opacity: 0; transition: opacity 0.3s ease;
+             z-index: 1; /* Below text, above image */
+        }
+        .project-card:hover {
+             transform: translateY(-5px) !important; /* Ensure hover transform overrides scroll transform Y */
+             box-shadow: 0 10px 20px rgba(255, 0, 60, 0.2);
+        }
+        .project-card:hover::after { opacity: 1; }
+        .project-img { width: 100%; height: 200px; object-fit: cover; border-bottom: 2px solid var(--primary); transition: transform 0.5s ease; display: block; }
+        .project-card:hover .project-img { transform: scale(1.05); } /* Existing image animation on hover */
+        .project-info { padding: 1.5rem; position: relative; z-index: 2; /* Above overlay */ }
+        .project-info h3 { margin-bottom: 0.5rem; } /* Uses accent color */
+        .project-info p { color: var(--text); } /* Ensure default color */
+        .project-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1rem 0; }
+        .tag { background-color: var(--highlight); color: var(--text); padding: 0.3rem 0.8rem; font-size: 0.8rem; border-radius: 3px; }
+
+        /* --- Modal Styles --- */
+        .modal {
+             display: none; position: fixed; z-index: 1000; left: 0; top: 0;
+             width: 100%; height: 100%; overflow-y: auto; /* Enable vertical scroll ONLY */
+             background-color: rgba(0,0,0,0.9); opacity: 0;
+             transition: opacity 0.3s ease-in-out; /* Fade animation for overlay */
+        }
+        .modal.active { display: block; opacity: 1; }
+        .modal-content {
+             background-color: var(--card-bg); margin: 5% auto; padding: 0; /* Padding handled by header/body */
+             border: 3px solid var(--primary); max-width: 900px; position: relative;
+             box-shadow: 0 10px 30px rgba(138, 3, 3, 0.5); /* Bloody shadow */
+             opacity: 0; /* Start hidden for animation */
+        }
+        .modal.active .modal-content {
+            /* Apply the keyframe animation for opening */
+            animation: modalOpenAnimation 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; /* Use a nice easing function */
+         }
+        .modal-header {
+             padding: 1rem 1.5rem; background-color: var(--secondary);
+             border-bottom: 2px solid var(--primary); display: flex;
+             justify-content: space-between; align-items: center;
+        }
+        .modal-header h3 { font-size: 1.5rem; margin: 0; } /* Uses accent color */
+        .close-modal {
+             background: none; border: none; color: var(--text); font-size: 2rem;
+             font-weight: bold; cursor: pointer; transition: color 0.3s ease, transform 0.3s ease;
+             padding: 0 0.5rem; line-height: 1;
+        }
+        .close-modal:hover { color: var(--primary); transform: scale(1.1); }
+        .modal-body { padding: 2rem; display: flex; flex-direction: column; gap: 1.5rem; }
+        /* Details section within modal */
+        .modal-details { display: grid; grid-template-columns: 1fr; gap: 1.5rem; /* Always single column below slider */ margin-top: 1rem; }
+        .modal-description h4, .modal-features h4 { color: var(--accent); margin-bottom: 0.8rem; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px;}
+        .modal-description p { color: var(--text); margin-bottom: 0; } /* Remove default p margin */
+        .modal-features ul { list-style: none; padding: 0; margin: 0;}
+        .modal-features li { margin-bottom: 0.7rem; padding-left: 1.5rem; position: relative; color: var(--text); }
+        /* Bloody bullet points */
+        .modal-features li::before { content: '▸'; position: absolute; left: 0; color: var(--primary); font-size: 1.2em; line-height: 1;}
+
+        /* --- Swiper Styles (Inside Modal) --- */
+        /* Container for the slider */
+        .project-swiper {
+             width: 100%;
+             height: 400px; /* Default height - adjust as needed */
+             margin-bottom: 2rem; /* Space below slider, before details */
+             background-color: #000; /* Fallback background */
+              position: relative; /* Needed for absolute positioning of nav buttons */
+              border: 1px solid var(--blood-darker); /* Optional border */
+        }
+        /* Individual slides */
+        .swiper-slide {
+             text-align: center; font-size: 18px; background: #000;
+             display: flex; justify-content: center; align-items: center;
+             overflow: hidden; /* Prevent content spill */
+        }
+        /* Images and Videos within slides */
+        .swiper-slide img, .swiper-slide video {
+             display: block; width: 100%; height: 100%;
+             object-fit: contain; /* Make sure entire image/video is visible */
+        }
+        /* Navigation buttons styling */
+        .project-swiper .swiper-button-next,
+        .project-swiper .swiper-button-prev {
+             color: var(--primary); background-color: rgba(0, 0, 0, 0.3);
+             border-radius: 50%; width: 40px; height: 40px;
+             transition: background-color 0.3s ease; position: absolute; top: 50%;
+             margin-top: -20px; /* Half of height to vertically center */
+             z-index: 10; /* Ensure buttons are clickable */
+        }
+        .project-swiper .swiper-button-next:hover,
+        .project-swiper .swiper-button-prev:hover { background-color: rgba(0, 0, 0, 0.6); }
+        /* Arrow icons inside buttons */
+        .project-swiper .swiper-button-next::after,
+        .project-swiper .swiper-button-prev::after { font-size: 1.2rem; font-weight: bold; }
+        /* Positioning buttons */
+        .project-swiper .swiper-button-prev { left: 15px; }
+        .project-swiper .swiper-button-next { right: 15px; }
+        /* Pagination dots styling */
+        .project-swiper .swiper-pagination { position: absolute; bottom: 10px !important; /* Position at bottom */ left: 0; width: 100%; }
+        .project-swiper .swiper-pagination-bullet { background-color: var(--text); opacity: 0.6; transition: background-color 0.3s ease, opacity 0.3s ease;}
+        .project-swiper .swiper-pagination-bullet-active { background-color: var(--primary); opacity: 1; }
+
+        /* --- Contact Form --- */
+        .contact-form {
+             max-width: 600px; margin: 2rem auto 0 auto;
+             /* Will be animated by JS */
+        }
+        .form-group { margin-bottom: 1.5rem; }
+        label { display: block; margin-bottom: 0.5rem; color: var(--accent); font-weight: bold; }
+        input, textarea {
+             width: 100%; padding: 0.8rem 1rem; background-color: var(--card-bg);
+             border: 1px solid var(--primary); color: var(--text);
+             font-family: 'Courier New', monospace; font-size: 1rem;
+             transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        input:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 10px rgba(255, 102, 0, 0.4); }
+        textarea { min-height: 150px; resize: vertical; }
+        button[type="submit"] {
+             background-color: var(--primary); border: none; padding: 1rem 2rem;
+             font-weight: bold; text-transform: uppercase; letter-spacing: 1px;
+             cursor: pointer; transition: all 0.3s ease; display: inline-block;
+             /* Bloody shadow applied by general rule, animated by JS */
+        }
+        button[type="submit"]:hover { background-color: var(--accent); transform: translateY(-3px) scale(1.03); box-shadow: 0 5px 10px rgba(0,0,0,0.3); }
+
+        /* --- Footer --- */
+        footer { background-color: var(--secondary); text-align: center; padding: 2rem; border-top: 3px solid var(--primary); margin-top: 3rem; }
+        .social-links { display: flex; justify-content: center; gap: 1.5rem; margin: 1rem 0; }
+        .social-links a {
+             color: var(--text); font-size: 1.5rem;
+             transition: color 0.3s ease, transform 0.3s ease; text-decoration: none;
+             display: inline-block;
+        }
+        .social-links a:hover { color: var(--primary); transform: scale(1.1) translateY(-2px); }
+        footer p { color: var(--text); margin-top: 1.5rem; }
+
+        /* --- Media Queries --- */
+        @media (max-width: 992px) {
+             /* Modal details already stacked */
+              .project-swiper { height: 380px; } /* Adjust slider height */
+        }
+        @media (max-width: 768px) {
+             h1 { font-size: 2.2rem; letter-spacing: 3px; }
+             .tagline { font-size: 1rem; letter-spacing: 2px; }
+             .about-content { flex-direction: column; text-align: center; }
+             .profile-img { max-width: 200px; margin-top: 1.5rem; }
+             nav ul { flex-direction: column; gap: 0.8rem; align-items: center; }
+             nav a { padding: 0.4rem 0.8rem; }
+             .projects-grid { grid-template-columns: 1fr; }
+             h2 { font-size: 1.8rem; }
+             .project-swiper { height: 320px; } /* Adjust slider height */
+             .modal-body { padding: 1.5rem; }
+             .modal-details { gap: 1rem; } /* Reduce gap in modal details */
+             /* Disable scroll animation delays on smaller grids */
+             .skills-grid .animate-on-scroll:nth-child(n),
+             .projects-grid .animate-on-scroll:nth-child(n) { transition-delay: 0s !important; }
+        }
+         @media (max-width: 480px) {
+             h1 { font-size: 1.8rem; letter-spacing: 2px; }
+             section { padding: 2rem 1rem; }
+             button[type="submit"] { padding: 0.8rem 1.5rem; width: 100%; } /* Full width button */
+             .social-links a { font-size: 1.3rem; }
+             .project-swiper { height: 250px; } /* Further adjust slider height */
+             .modal-body { padding: 1rem; }
+             .modal-header h3 { font-size: 1.2rem;}
+             .close-modal { font-size: 1.5rem;}
+             /* Smaller nav buttons on mobile */
+             .project-swiper .swiper-button-next,
+             .project-swiper .swiper-button-prev { width: 30px; height: 30px; margin-top: -15px; }
+             .project-swiper .swiper-button-next::after,
+             .project-swiper .swiper-button-prev::after { font-size: 1rem; }
+         }
+
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Muhammad Zaid Mir</h1>
+        <p class="tagline"> | Frontend Developer & UI Designer | </p>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="#about">About</a></li>
+            <li><a href="#skills">Skills</a></li>
+            <li><a href="#projects">Projects</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+    </nav>
+
+    <section id="about" class="animate-on-scroll">
+        <h2>About Me</h2>
+        <div class="about-content">
+            <div class="about-text">
+                <p>I'm a highly motivated and creative Frontend Web Developer & UI Designer with strong expertise in building responsive, animated, and user-centric websites. With a focus on performance, accessibility, and visual appeal, I specialize in delivering professional-grade web solutions for businesses and individuals across the globe.</p>
+                <p>I bring together technical proficiency and design sensitivity to craft seamless digital experiences that not only function flawlessly but also look and feel exceptional. From clean code to creative interfaces — I ensure every detail matters.</p>
+                <p>Frontend Developer with experience in both product-based and service-based website creation.</p>
+            </div>
+            <img src="images/zaid 2.JPG" alt="Zaid Mir" class="profile-img animate-on-scroll">
+        </div>
+    </section>
+
+    <section id="skills" class="animate-on-scroll">
+        <h2>Tech Stack & Tools</h2>
+        <div class="skills-grid">
+            <div class="skill-card animate-on-scroll">
+                <h3>Core Technologies</h3>
+                <p>HTML5, CSS3, JavaScript (ES6+), JSON</p>
+            </div>
+            <div class="skill-card animate-on-scroll">
+                <h3>Frameworks & Libraries</h3>
+                <p>Bootstrap 5.x, jQuery, React.js, Swiper.js</p> </div>
+            <div class="skill-card animate-on-scroll">
+                <h3>UI/UX & Styling</h3>
+                <p>Responsive Design, CSS Animations, Brutalism Concepts</p>
+            </div>
+            <div class="skill-card animate-on-scroll">
+                <h3>Tools</h3>
+                <p>VS Code, GitHub, Chrome DevTools, Figma, Photoshop</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="projects" class="animate-on-scroll">
+        <h2>Key Projects</h2>
+        <div class="projects-grid">
+            <div class="project-card animate-on-scroll" onclick="openModal('life-link')">
+                <img src="images/life link.png" alt="Life Link" class="project-img">
+                <div class="project-info">
+                    <h3>Life Link – Ambulance Service</h3>
+                    <p>Professional multi-page ambulance platform.</p>
+                    <div class="project-tags">
+                        <span class="tag">HTML</span> <span class="tag">CSS</span> <span class="tag">JavaScript</span> <span class="tag">Animation</span>
+                    </div>
+                </div>
+            </div>
+            <div class="project-card animate-on-scroll" onclick="openModal('boston-perfumes')">
+                 <img src="images/bostan perfume.jpeg" alt="Boston Perfumes" class="project-img">
+                 <div class="project-info">
+                     <h3>Boston Perfumes</h3>
+                     <p>Scroll-based e-commerce layout.</p>
+                     <div class="project-tags">
+                         <span class="tag">E-commerce</span> <span class="tag">Responsive</span> <span class="tag">Bootstrap</span>
+                     </div>
+                 </div>
+            </div>
+            <div class="project-card animate-on-scroll" onclick="openModal('watch-showcase')">
+                <img src="images/Times Elegance.jpeg" alt="Watch Showcase" class="project-img">
+                <div class="project-info">
+                    <h3>Watch Showcase</h3>
+                    <p>Luxury watch showcase with themed design and zoom.</p>
+                    <div class="project-tags">
+                        <span class="tag">Showcase</span> <span class="tag">Luxury</span> <span class="tag">CSS</span> <span class="tag">UI/UX</span>
+                    </div>
+                </div>
+            </div>
+            <div class="project-card animate-on-scroll" onclick="openModal('ac-website')">
+                 <img src="images/air condition.jpeg" alt="AC Website" class="project-img">
+                 <div class="project-info">
+                      <h3>Air Conditioner Website</h3>
+                      <p>Brand filtering and comparison feature.</p>
+                      <div class="project-tags">
+                           <span class="tag">Filtering</span> <span class="tag">Animation</span> <span class="tag">UI/UX</span>
+                      </div>
+                 </div>
+             </div>
+            <div class="project-card animate-on-scroll" onclick="openModal('dsl-quizzes')">
+                 <img src="images/dsl quiz.jpeg" alt="DSL Quizzes" class="project-img">
+                 <div class="project-info">
+                     <h3>DSL Quizzes</h3>
+                     <p>Interactive quiz app with timer.</p>
+                     <div class="project-tags">
+                         <span class="tag">JavaScript</span> <span class="tag">Interactive</span> <span class="tag">Quiz</span>
+                     </div>
+                 </div>
+            </div>
+             <div class="project-card animate-on-scroll" onclick="openModal('nail-art-showcase')">
+                 <img src="images/nail scape.jpeg" alt="Nail Art Showcase" class="project-img">
+                 <div class="project-info">
+                     <h3>Nail Art Showcase</h3>
+                     <p>Visually rich portfolio for nail art designs.</p>
+                     <div class="project-tags">
+                         <span class="tag">Design</span> <span class="tag">Portfolio</span> <span class="tag">CSS</span> <span class="tag">Animation</span>
+                     </div>
+                 </div>
+            </div>
+        </div>
+    </section>
+
+    <div id="life-link" class="modal" tabindex="-1" aria-labelledby="life-link-title" aria-modal="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="life-link-title">Life Link – Ambulance Service</h3>
+                <button class="close-modal" aria-label="Close modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="swiper project-swiper">
+                    <div class="swiper-wrapper">
+                        <div class="swiper-slide">
+                            <img src="images/ambulance 1.jpg" alt="Life Link Screenshot 1">
+                        </div>
+                        <div class="swiper-slide">
+                            <img src="images/ambulance 2.jpg" alt="Life Link Screenshot 2">
+                        </div>
+                        <div class="swiper-slide">
+                            <video controls muted autoplay playsinline preload="metadata" width="100%" height="100%">
+                                <source src="images/ambulance.mp4" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
+                        <div class="swiper-slide">
+                            <img src="images/ambulance 3.jpg" alt="Life Link Screenshot 3">
+                        </div>
+                        <div class="swiper-slide">
+                            <img src="images/ambulance 4.jpg" alt="Life Link Screenshot 4">
+                        </div>
+                    </div>
+                    <div class="swiper-button-prev"></div>
+                    <div class="swiper-button-next"></div>
+                    <div class="swiper-pagination"></div>
+                </div>
+                <div class="modal-details">
+                    <div class="modal-description">
+                        <h4>Description</h4>
+                        <p>A professional, multi-page ambulance platform featuring animated landing page with GIF background, sign-in/sign-up functionality, detailed service section with 10 categories and image galleries, tracking system interface, greeting & assistance visuals, and animated mission & vision sections.</p>
+                    </div>
+                    <div class="modal-features">
+                        <h4>Key Features</h4>
+                        <ul>
+                            <li>Animated landing page with emergency call button</li>
+                            <li>User authentication system</li>
+                            <li>Service categorization with image galleries</li>
+                            <li>Real-time tracking interface</li>
+                            <li>Responsive design for all devices</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="boston-perfumes" class="modal" tabindex="-1" aria-labelledby="boston-perfumes-title" aria-modal="true"> <div class="modal-content"> <div class="modal-header"> <h3 id="boston-perfumes-title">Boston Perfumes</h3> <button class="close-modal" aria-label="Close modal">&times;</button> </div> <div class="modal-body"> <div class="swiper project-swiper"> <div class="swiper-wrapper"> <div class="swiper-slide"><img src="images/perfume 1.jpg" alt="Boston 1"></div> <div class="swiper-slide"><img src="images/perfume 2.jpg" alt="Boston 2"></div> <div class="swiper-slide"> <video controls muted autoplay playsinline preload="metadata" width="100%" height="100%"><source src="images/bostan perfume.mp4" type="video/mp4">Video not supported.</video> </div> <div class="swiper-slide"><img src="images/perfume 3.jpg" alt="Boston 3"></div> <div class="swiper-slide"><img src="images/perfume 4.jpg" alt="Boston 4"></div> </div> <div class="swiper-pagination"></div> <div class="swiper-button-prev"></div> <div class="swiper-button-next"></div> </div> <div class="modal-details"> <div class="modal-description"><h4>Description</h4><p>Full-width scroll-based layout with centered headings, moving banners and sleek product sections (Men & Women), linked categories for product purchases, and professional footer with international payment options.</p></div> <div class="modal-features"><h4>Key Features</h4><ul><li>Parallax scrolling effects</li><li>Gender-based product categorization</li><li>Animated product hover effects</li><li>International payment gateway integration</li></ul></div> </div> </div> </div> </div>
+    <div id="watch-showcase" class="modal" tabindex="-1" aria-labelledby="watch-showcase-title" aria-modal="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="watch-showcase-title">Watch Showcase</h3>
+                <button class="close-modal" aria-label="Close modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="swiper project-swiper">
+                    <div class="swiper-wrapper">
+                        <div class="swiper-slide"><img src="images/watch 1.jpg" alt="Watch Showcase 1"></div>
+                        <div class="swiper-slide">
+                            <video controls muted autoplay playsinline preload="metadata" width="100%" height="100%">
+                                <source src="images/watch .mp4" type="video/mp4">Video not supported.
+                            </video>
+                        </div>
+                        <div class="swiper-slide"><img src="images/watch 2.jpg" alt="Watch Showcase 2"></div>
+                        <div class="swiper-slide"><img src="images/watch 3.jpg" alt="Watch Showcase 3"></div>
+                        <div class="swiper-slide"><img src="images/watch 4.jpg" alt="Watch Showcase 4"></div>
+                    </div>
+                    <div class="swiper-pagination"></div>
+                    <div class="swiper-button-prev"></div>
+                    <div class="swiper-button-next"></div>
+                </div>
+                <div class="modal-details">
+                    <div class="modal-description">
+                        <h4>Description</h4>
+                        <p>Themed designs with professional layouts, equal-sized section cards and consistent branding. Custom color schemes to match product niche, featuring high-quality product displays with zoom functionality and category-based organization.</p>
+                    </div>
+                    <div class="modal-features">
+                        <h4>Key Features</h4>
+                        <ul>
+                            <li>Product showcase with hover zoom</li>
+                            <li>Consistent branding throughout</li>
+                            <li>Category-based organization</li>
+                            <li>Custom color schemes</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="ac-website" class="modal" tabindex="-1" aria-labelledby="ac-website-title" aria-modal="true"> <div class="modal-content"> <div class="modal-header"><h3 id="ac-website-title">Air Conditioner Website</h3><button class="close-modal" aria-label="Close modal">&times;</button></div> <div class="modal-body"> <div class="swiper project-swiper"> <div class="swiper-wrapper"> <div class="swiper-slide"> <video controls muted autoplay playsinline preload="metadata" width="100%" height="100%"><source src="images/air cooler.mp4" type="video/mp4">Video not supported.</video> </div> <div class="swiper-slide"><img src="images/air 1.jpg" alt="AC 1"></div> <div class="swiper-slide"><img src="images/air 2.jpg" alt="AC 2"></div> <div class="swiper-slide"><img src="images/air 3.jpg" alt="AC 3"></div> <div class="swiper-slide"><img src="images/air 4.jpg" alt="AC 4"></div> </div> <div class="swiper-pagination"></div><div class="swiper-button-prev"></div><div class="swiper-button-next"></div> </div> <div class="modal-details"> <div class="modal-description"><h4>Description</h4><p>Brand-based filtering system (Royal, GFC, Surmawala), product comparison feature with downloadable Word files, animated cards, modern UI, and section-wise scroll. Includes pages for Home, Brands, Location, Compare, and Contact Us.</p></div> <div class="modal-features"><h4>Key Features</h4><ul><li>Brand-specific product filtering</li><li>Side-by-side product comparison</li><li>Downloadable comparison reports</li><li>Animated product cards</li></ul></div> </div> </div> </div> </div>
+    <div id="dsl-quizzes" class="modal" tabindex="-1" aria-labelledby="dsl-quizzes-title" aria-modal="true"> <div class="modal-content"> <div class="modal-header"><h3 id="dsl-quizzes-title">DSL Quizzes</h3><button class="close-modal" aria-label="Close modal">&times;</button></div> <div class="modal-body"> <div class="swiper project-swiper"> <div class="swiper-wrapper"> <div class="swiper-slide"><img src="images/quiz 1.jpg" alt="Quiz 1"></div> <div class="swiper-slide"><img src="images/quiz 2.jpg" alt="Quiz 2"></div> <div class="swiper-slide"><img src="images/quiz 3.jpg" alt="Quiz 3"></div> <div class="swiper-slide"><img src="images/quiz 4.jpg" alt="Quiz 4"></div> <div class="swiper-slide"> <video controls muted autoplay playsinline preload="metadata" width="100%" height="100%"><source src="images/quiz.mp4" type="video/mp4">Video not supported.</video> </div> </div> <div class="swiper-pagination"></div><div class="swiper-button-prev"></div><div class="swiper-button-next"></div> </div> <div class="modal-details"> <div class="modal-description"><h4>Description</h4><p>Interactive web quiz app featuring welcome screen with title, countdown timer (60 seconds/question), multiple-choice validation, real-time scoring, and polished UI with animations and transitions. Designed for educational purposes.</p></div> <div class="modal-features"><h4>Key Features</h4><ul><li>Timed quiz functionality</li><li>Multiple-choice question validation</li><li>Real-time score calculation</li><li>Results summary</li></ul></div> </div> </div> </div> </div>
+    <div id="nail-art-showcase" class="modal" tabindex="-1" aria-labelledby="nail-art-showcase-title" aria-modal="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="nail-art-showcase-title">Nail Art Showcase</h3>
+                <button class="close-modal" aria-label="Close modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="swiper project-swiper">
+                    <div class="swiper-wrapper">
+                        <div class="swiper-slide"><img src="images/nail scape 1.jpeg" alt="Nail Art 1"></div>
+                        <div class="swiper-slide"><img src="images/nail scape 2.jpeg" alt="Nail Art 2"></div>
+                        <div class="swiper-slide">
+                            <video controls muted autoplay playsinline preload="metadata" width="100%" height="100%">
+                                <source src="images/nail scape.mp4" type="video/mp4">Video not supported.
+                            </video>
+                        </div>
+                        <div class="swiper-slide"><img src="images/nail scape 3.jpeg" alt="Nail Art 3"></div>
+                        <div class="swiper-slide"><img src="images/nail scape 4.jpeg" alt="Nail Art 4"></div>
+                    </div>
+                    <div class="swiper-pagination"></div>
+                    <div class="swiper-button-prev"></div>
+                    <div class="swiper-button-next"></div>
+                </div>
+                <div class="modal-details">
+                    <div class="modal-description">
+                        <h4>Description</h4>
+                        <p>A vibrant and interactive website showcasing various nail art designs and techniques. Features include high-resolution image galleries, design filtering, and potentially booking integration.</p>
+                    </div>
+                    <div class="modal-features">
+                        <h4>Key Features</h4>
+                        <ul>
+                            <li>High-resolution image galleries</li>
+                            <li>Design filtering/categorization</li>
+                            <li>Responsive layout for all devices</li>
+                            <li>Smooth animations and transitions</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section id="contact" class="animate-on-scroll">
+        <h2>Get In Touch</h2>
+        <div class="contact-form animate-on-scroll">
+             <form> <div class="form-group">
+                 <label for="name">Name</label>
+                 <input type="text" id="name" name="name" required>
+             </div>
+             <div class="form-group">
+                 <label for="email">Email</label>
+                 <input type="email" id="email" name="email" required>
+             </div>
+             <div class="form-group">
+                 <label for="message">Message</label>
+                 <textarea id="message" name="message" required></textarea>
+             </div>
+             <button type="submit">Send Message</button>
+            </form>
+        </div>
+    </section>
+
+    <footer>
+        <div class="social-links">
+             <a href="https://github.com/zaidmir2006" target="_blank" rel="noopener noreferrer" aria-label="GitHub">GitHub</a>
+             <a href="https://www.linkedin.com/in/zaid-mir-351658279/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">LinkedIn</a>
+             <a href="https://www.facebook.com/m.zaid.mir.2025" target="_blank" rel="noopener noreferrer" aria-label="Facebook">Facebook</a>
+             <a href="https://www.instagram.com/itx_zaid_mir_358/?hl=en" target="_blank" rel="noopener noreferrer" aria-label="Instagram">Instagram</a>
+        </div>
+        <p>&copy; <span id="current-year"></span> Muhammad Zaid Mir. All rights reserved.</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+    <script>
+        // --- Update Footer Year ---
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+
+        // --- Swiper Initialization & Modal Logic ---
+        let activeSwiper = null; // Holds the current Swiper instance
+
+        function initializeSwiper(modalElement) {
+            const swiperContainer = modalElement.querySelector('.project-swiper');
+            if (!swiperContainer || swiperContainer.swiper) return; // Exit if no container or already initialized
+
+            activeSwiper = new Swiper(swiperContainer, {
+                loop: true, // Enables looping through slides
+                slidesPerView: 1, // Shows one slide at a time
+                spaceBetween: 30, // Optional space between slides
+                grabCursor: true, // Shows grab cursor on hover
+                pagination: { el: swiperContainer.querySelector('.swiper-pagination'), clickable: true },
+                navigation: { nextEl: swiperContainer.querySelector('.swiper-button-next'), prevEl: swiperContainer.querySelector('.swiper-button-prev') },
+                keyboard: { enabled: true }, // Allow keyboard navigation
+                a11y: { prevSlideMessage: 'Previous slide', nextSlideMessage: 'Next slide' },
+                on: {
+                    slideChangeTransitionStart: function () {
+                        // Pause video in the previously active slide (including duplicates)
+                        const potentiallyActiveSlides = this.slides.filter((slide, index) => index === this.previousIndex || slide.classList.contains('swiper-slide-duplicate'));
+                        potentiallyActiveSlides.forEach(slide => {
+                            const video = slide.querySelector('video');
+                            if (video && !video.paused) { try { video.pause(); video.currentTime = 0; } catch (e) { console.error("Error pausing video:", e)} } // Also reset time
+                        });
+                    },
+                    slideChangeTransitionEnd: function() {
+                         // Autoplay video in the new active slide if it's a video
+                         const activeSlide = this.slides[this.activeIndex];
+                         const video = activeSlide.querySelector('video');
+                         if (video) {
+                             try {
+                                 video.play().catch(e => console.error("Autoplay prevented:", e)); // Attempt to play, catch errors
+                             } catch (e) {
+                                 console.error("Error playing video:", e);
+                             }
+                         }
+                     }
+                }
+            });
+
+             // Initial check for video on the first slide when swiper loads
+             const initialActiveSlide = activeSwiper.slides[activeSwiper.activeIndex];
+             const initialVideo = initialActiveSlide?.querySelector('video');
+             if (initialVideo) {
+                 try {
+                     initialVideo.play().catch(e => console.error("Initial autoplay prevented:", e));
+                 } catch (e) {
+                     console.error("Error playing initial video:", e);
+                 }
+             }
+
+        }
+
+        function destroySwiper() {
+            if (activeSwiper && typeof activeSwiper.destroy === 'function' && !activeSwiper.destroyed) {
+                try {
+                     // Try to pause the video in the very last active slide before destroying
+                     const lastActiveSlide = activeSwiper.slides[activeSwiper.activeIndex];
+                     if (lastActiveSlide) {
+                         const video = lastActiveSlide.querySelector('video');
+                          if (video && !video.paused) { try { video.pause(); } catch (e) { console.error("Error pausing video on destroy:", e)} }
+                     }
+                } catch (err) { console.error("Error accessing active slide video before destroy:", err); }
+                activeSwiper.destroy(true, true);
+                activeSwiper = null;
+            }
+        }
+
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                destroySwiper(); // Ensure any existing swiper is destroyed first
+                modal.classList.add('active');
+                document.body.classList.add('modal-open');
+                 requestAnimationFrame(() => { // Ensure modal is rendered before focusing/initializing
+                     modal.focus(); // Set focus to modal container for accessibility
+                     setTimeout(() => { // Allow animation to start before initializing swiper
+                         initializeSwiper(modal);
+                         modal.querySelector('.modal-content')?.focus(); // Try focusing content after swiper init
+                     }, 50); // Small delay
+                 });
+            } else { console.error("Modal with ID not found:", modalId); }
+        }
+
+        function closeModal() {
+            const modals = document.querySelectorAll('.modal.active');
+            modals.forEach(modal => { modal.classList.remove('active'); });
+            document.body.classList.remove('modal-open');
+            destroySwiper(); // Destroy swiper when closing
+        }
+
+        // Close modal listeners
+        window.addEventListener('click', (e) => {
+             if (e.target.classList.contains('modal') || e.target.closest('.close-modal')) { closeModal(); }
+        });
+        document.addEventListener('keydown', (e) => {
+             if (e.key === "Escape" && document.body.classList.contains('modal-open')) { closeModal(); }
+        });
+
+
+        // --- Bloody text effect enhancement (Mouse Move) ---
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => { clearTimeout(timeout); func(...args); };
+                clearTimeout(timeout); timeout = setTimeout(later, wait);
+            };
+        }
+        const bloodySelectors = 'h1, h2, h3, nav a, .tagline, button[type="submit"]';
+        const updateShadow = (e) => {
+            const bloodyElements = document.querySelectorAll(bloodySelectors);
+            if (window.innerWidth === 0 || window.innerHeight === 0) return; // Avoid division by zero
+             const x = (e.clientX / window.innerWidth) - 0.5; // -0.5 to 0.5
+             const y = (e.clientY / window.innerHeight) - 0.5; // -0.5 to 0.5
+             const maxOffset = 2; // Max additional pixel offset
+            bloodyElements.forEach(el => {
+                 // Calculate offsets based on cursor position, scaled by maxOffset
+                 const offsetX1 = 1 + x * maxOffset * 0.6;
+                 const offsetY1 = 1 + y * maxOffset * 0.6;
+                 const offsetX2 = 2 + x * maxOffset * 0.8;
+                 const offsetY2 = 2 + y * maxOffset * 0.8;
+                 const offsetX3 = 3 + x * maxOffset * 1.0;
+                 const offsetY3 = 3 + y * maxOffset * 1.0;
+
+                 // Apply slightly different shadow styles for H1 vs other elements
+                 if (el.tagName === 'H1') {
+                     el.style.textShadow = `${offsetX1.toFixed(2)}px ${offsetY1.toFixed(2)}px 1px var(--blood), ${offsetX2.toFixed(2)}px ${offsetY2.toFixed(2)}px 2px var(--blood), ${offsetX3.toFixed(2)}px ${offsetY3.toFixed(2)}px 3px var(--blood-darker), ${(4 + x * maxOffset * 1.2).toFixed(2)}px ${(4 + y * maxOffset * 1.2).toFixed(2)}px 4px rgba(64, 0, 0, 0.7), 1px 1px 6px rgba(0, 0, 0, 0.6)`;
+                 } else {
+                     el.style.textShadow = `${offsetX1.toFixed(2)}px ${offsetY1.toFixed(2)}px 1px var(--blood), ${offsetX2.toFixed(2)}px ${offsetY2.toFixed(2)}px 2px var(--blood), ${offsetX3.toFixed(2)}px ${offsetY3.toFixed(2)}px 3px var(--blood-darker), 1px 1px 5px rgba(0, 0, 0, 0.5)`;
+                 }
+            });
+        };
+        document.addEventListener('mousemove', debounce(updateShadow, 15)); // Debounced for performance
+        // Optional: Reset shadow when mouse leaves the window
+        document.addEventListener('mouseleave', () => {
+             const bloodyElements = document.querySelectorAll(bloodySelectors);
+             bloodyElements.forEach(el => {
+                 el.style.textShadow = ''; // Reset to CSS default
+             });
+        });
+
+        // --- Intersection Observer for Scroll Animations ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const observerOptions = {
+                root: null, // relative to document viewport
+                rootMargin: '0px',
+                threshold: 0.1 // Trigger when 10% of the element is visible
+            };
+
+            const observerCallback = (entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                        observer.unobserve(entry.target); // Stop observing once visible
+                    }
+                });
+            };
+
+            const observer = new IntersectionObserver(observerCallback, observerOptions);
+
+            // Select all elements you want to animate on scroll
+            const elementsToAnimate = document.querySelectorAll('.animate-on-scroll');
+            elementsToAnimate.forEach(el => {
+                observer.observe(el);
+            });
+        });
+
+    </script>
+</body>
+</html>
